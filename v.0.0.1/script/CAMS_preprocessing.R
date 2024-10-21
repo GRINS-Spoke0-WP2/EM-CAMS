@@ -4,7 +4,7 @@ library(ncdf4)
 
 
 #v6.2 #### DOWNLOADED MANUALLY
-pathSSD <- "/Volumes/Extreme SSD/Lavoro/GRINS/R_GRINS"
+pathSSD <- "/Volumes/Extreme SSD/Lavoro/GRINS/R_GRINS" #local path
 source("script/EM/functions.R")
 EMfiles <-
   list.files(paste0(pathSSD, "/data/EM/CAMS_GLOB_ANT/NO2/v6_2"))
