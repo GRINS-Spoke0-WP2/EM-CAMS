@@ -40,7 +40,7 @@ y <- array(
 )
 #converting monthly matrix to daily matrix
 dates <- as.Date(as.numeric(dimnames(y)[[3]]))
-daily <- seq.Date(min(dates),max(dates),by="days")
+daily <- seq.Date(min(dates),as.Date("2023-12-31"),by="days")
 y_d <- array(NA,c(dim(y)[1:2],length(daily)))
 idx <- 0
 for (d in 1:length(daily)) {
