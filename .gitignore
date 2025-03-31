@@ -1,2 +1,7 @@
 
 *.rda
+.Rproj.user
+
+*.rds
+*.nc
+*.csv
