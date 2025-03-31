@@ -20,7 +20,7 @@ Below is a concise comparison of the two current EM-CAMS versions:
 
 | **EM-CAMS Version**         | **Temporal Coverage** | **Spatial Coverage** | **Spatial Resolution** | **Origin**                                                                          | **Temporal Resolution** | **Sectors**                               |
 |-----------------------------|-----------------------|----------------------|------------------------|--------------------------------------------------------------------------------------|-------------------------|-------------------------------------------|
-| **v1.0**                    | 2000–2020             | Italy                | 0.1° × 0.1°           | CAMS-GLOB-ANT v6.2                        | Daily                   | sum Sector          |
+| **v1.0**                    | 2013–2023             | Italy                | 0.1° × 0.1°           | CAMS-GLOB-ANT v6.2                        | Daily                   | sum Sector          |
 | **v2.0** (ongoing work)      | 2000–2022             | Italy                | 0.05° × 0.1°           | CAMS-REG-ANT v8.0 and CAMS-REG-TEMPO Simplified v4.1                          | Daily                   | GNFR sectors (A–L) + sum.sectors          |
 
 
