@@ -4,178 +4,158 @@
 # Contiene le funzioni finali di calcolo e aggregazione:
 #   - DailyPRF_fromFMFW
 #   - StackDailyData
-#   - SumAllSectorsIntoOne  (modificata per salvare anno per anno)
+#   - SumAllSectorsIntoOne  (supporta sub-range di somma)
 # ------------------------------------------------------------------------------
 
-DailyPRF_fromFMFW <- function(FM_profile, FW_profile, sector) {
+DailyPRF_fromFMFW <- function(FM_profile, FW_profile, sector,
+                              start_year = 2000, end_year = 2020,
+                              output_base = "Data/Processed/TEMPO_data/DailyProfiles") {
   
-  is_leap_year <- function(year) {
-    (year %% 4 == 0 & year %% 100 != 0) | (year %% 400 == 0)
+  is_leap_year <- function(y) (y %% 4 == 0 & y %% 100 != 0) | (y %% 400 == 0)
+  days_in_month <- function(y) {
+    if (is_leap_year(y)) c(31,29,31,30,31,30,31,31,30,31,30,31)
+    else                c(31,28,31,30,31,30,31,31,30,31,30,31)
   }
-  
-  get_days_in_month <- function(year) {
-    if (is_leap_year(year)) {
-      c(31,29,31,30,31,30,31,31,30,31,30,31)
-    } else {
-      c(31,28,31,30,31,30,31,31,30,31,30,31)
-    }
-  }
-  
-  get_first_day_of_year <- function(year) {
-    w <- as.POSIXlt(paste0(year, "-01-01"))$wday
+  first_weekday <- function(y) {
+    w <- as.POSIXlt(paste0(y, "-01-01"))$wday
     if (w == 0) 7 else w
   }
+  days_in_year <- function(y) if (is_leap_year(y)) 366 else 365
   
-  get_days_in_year <- function(year) {
-    if (is_leap_year(year)) 366 else 365
-  }
-  
-  start_year <- 2000
-  end_year   <- 2020
-  
-  sector_folder <- file.path("Data/Processed/TEMPO_data/DailyProfiles", sector)
+  sector_folder <- file.path(output_base, sector)
   if (!dir.exists(sector_folder)) dir.create(sector_folder, recursive = TRUE)
   
-  for (year in start_year:end_year) {
-    message("Processing year: ", year)
+  for (yr in seq(start_year, end_year)) {
+    message("Processing year: ", yr)
     
-    days_in_month   <- get_days_in_month(year)
-    total_days      <- get_days_in_year(year)
-    current_weekday <- get_first_day_of_year(year)
+    dimM  <- days_in_month(yr)
+    ndays <- days_in_year(yr)
+    wk    <- first_weekday(yr)
     
+    # costruisci vettori date
+    dates <- seq.Date(as.Date(paste0(yr, "-01-01")),
+                      by = "day", length.out = ndays)
+    cf_t  <- as.character(as.integer(dates - as.Date("1850-01-01")))
+    rd_t  <- format(dates, "%Y-%m-%d")
+    
+    # inizializza array
     x_dim <- dim(FM_profile)[1]
     y_dim <- dim(FM_profile)[2]
-    daily_profile <- array(0, dim = c(x_dim, y_dim, total_days))
+    daily_profile <- array(
+      0,
+      dim = c(x_dim, y_dim, ndays),
+      dimnames = list(lon = NULL, lat = NULL, time = cf_t)
+    )
+    attr(daily_profile, "dates") <- rd_t
     
-    day_counter <- 1
-    for (m in seq_along(days_in_month)) {
-      for (d in seq_len(days_in_month[m])) {
-        daily_profile[,,day_counter] <-
-          FM_profile[,,m] * FW_profile[,,current_weekday]
-        day_counter     <- day_counter + 1
-        current_weekday <- ifelse(current_weekday == 7, 1, current_weekday + 1)
+    # popolamento
+    counter <- 1
+    for (m in seq_along(dimM)) {
+      for (d in seq_len(dimM[m])) {
+        daily_profile[,,counter] <- FM_profile[,,m] * FW_profile[,,wk]
+        counter <- counter + 1
+        wk      <- ifelse(wk == 7, 1, wk + 1)
       }
     }
     
-    output_file <- file.path(
-      sector_folder,
-      paste0("DailyProfile_", year, "_", sector, ".rds")
-    )
-    saveRDS(daily_profile, output_file)
+    # salva
+    outf <- file.path(sector_folder, paste0("DailyProfile_", yr, "_", sector, ".rds"))
+    saveRDS(daily_profile, outf)
     rm(daily_profile); gc()
   }
 }
 
 
-StackDailyData <- function(input_folder, sector, pollutant, start_year, end_year) {
+StackDailyData <- function(input_folder, sector, pollutant,
+                           start_year, end_year) {
   library(abind)
   
-  daily_data_list <- vector("list", length = end_year - start_year + 1)
-  names(daily_data_list) <- as.character(start_year:end_year)
-  
-  for (year in start_year:end_year) {
-    fname <- file.path(
-      input_folder,
-      paste0("Daily_", sector, "_", year, "_", pollutant, ".rds")
-    )
-    if (!file.exists(fname)) {
-      alt <- file.path(input_folder, "SimplifiedDailyData", pollutant,
-                       paste0("D_", sector, "_", year, ".rds"))
-      if (!file.exists(alt)) {
-        stop("File not found for year ", year, ": ", alt)
-      }
-      fname <- alt
+  years <- seq(start_year, end_year)
+  tmp   <- lapply(years, function(yr) {
+    f1 <- file.path(input_folder,
+                    paste0("Daily_", sector, "_", yr, "_", pollutant, ".rds"))
+    if (!file.exists(f1)) {
+      f2 <- file.path(input_folder, "SimplifiedDailyData", pollutant,
+                      paste0("D_", sector, "_", yr, ".rds"))
+      if (!file.exists(f2)) stop("File not found for year ", yr)
+      f1 <- f2
     }
-    daily_data_list[[as.character(year)]] <- readRDS(fname)
-  }
+    readRDS(f1)
+  })
   
-  stacked_daily_data <- abind(daily_data_list, along = 3)
+  stacked <- abind(tmp, along = 3)
   
-  # Etichette temporali in ddmmyyyy
-  total_days  <- dim(stacked_daily_data)[3]
-  start_date  <- as.Date(paste0(start_year, "-01-01"))
-  date_seq    <- seq.Date(from = start_date, by = "day", length.out = total_days)
-  time_names  <- format(date_seq, "%d%m%Y")
+  # etichette time CF + dates attr
+  total_days <- dim(stacked)[3]
+  start_date <- as.Date(paste0(start_year, "-01-01"))
+  dates      <- seq.Date(start_date, by = "day", length.out = total_days)
+  cf_t       <- as.character(as.integer(dates - as.Date("1850-01-01")))
+  rd_t       <- format(dates, "%Y-%m-%d")
   
-  # Carica lon/lat idx e crea nomi “puliti”
-  lon_lat_idx <- readRDS("Data/Processed/lon_lat_idx.rds")
-  lon_vals    <- lon_lat_idx$lon[lon_lat_idx$lon_idx]
-  lat_vals    <- lon_lat_idx$lat[lon_lat_idx$lat_idx]
-  lon_names   <- prettyNum(lon_vals, trim = TRUE, scientific = FALSE)
-  lat_names   <- prettyNum(lat_vals, trim = TRUE, scientific = FALSE)
+  # lon/lat names
+  lonlat <- readRDS("Data/Processed/lon_lat_idx.rds")
+  lon_n   <- prettyNum(lonlat$lon[lonlat$lon_idx], trim = TRUE, scientific = FALSE)
+  lat_n   <- prettyNum(lonlat$lat[lonlat$lat_idx], trim = TRUE, scientific = FALSE)
   
-  dimnames(stacked_daily_data) <- list(
-    lon  = lon_names,
-    lat  = lat_names,
-    time = time_names
-  )
+  dimnames(stacked) <- list(lon = lon_n, lat = lat_n, time = cf_t)
+  attr(stacked, "dates") <- rd_t
   
+  # salva multiperiodo
   outdir <- file.path(input_folder, "DailyAlongYears")
   if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
-  saveRDS(
-    stacked_daily_data,
-    file = file.path(
-      outdir,
-      paste0("Daily_", sector, "_", start_year, "_", end_year, "_", pollutant, ".rds")
-    )
-  )
+  outf <- file.path(outdir,
+                    paste0("Daily_", sector, "_", start_year, "_", end_year, "_", pollutant, ".rds"))
+  saveRDS(stacked, outf)
 }
 
 
-SumAllSectorsIntoOne <- function(input_folder, pollutant, start_year, end_year, output_folder) {
-  # helper per giorni/anno
+SumAllSectorsIntoOne <- function(input_folder, pollutant,
+                                 stack_start, stack_end,
+                                 sum_start, sum_end,
+                                 output_folder) {
   is_leap <- function(y) (y %% 4 == 0 & y %% 100 != 0) | (y %% 400 == 0)
   days_in_year <- function(y) if (is_leap(y)) 366 else 365
   
-  # preparazione cartella di output
   if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
   
-  # anni e indici cumulati
-  years    <- seq(start_year, end_year)
-  days_vec <- sapply(years, days_in_year)
-  cum_days <- cumsum(days_vec)
-  start_idx <- c(1, head(cum_days, -1) + 1)
-  end_idx   <- cum_days
+  years_stack <- seq(stack_start, stack_end)
+  days_stack  <- sapply(years_stack, days_in_year)
+  cum_days    <- cumsum(days_stack)
+  start_idx   <- c(1, head(cum_days, -1) + 1)
+  end_idx     <- cum_days
+  
+  # intervallo globale all'interno del file stacked
+  idx_range <- seq(start_idx[which(years_stack == sum_start)],
+                   end_idx  [which(years_stack == sum_end)])
   
   sectors <- LETTERS[1:12]
+  total_sum <- NULL
   
-  for (i in seq_along(years)) {
-    yr       <- years[i]
-    idx      <- start_idx[i]:end_idx[i]
-    total_sum <- NULL
-    
-    message("Summing for year ", yr, " (days ", min(idx), "–", max(idx), ")")
-    
-    for (s in sectors) {
-      # path al file multi-anno per questo settore
-      fn <- file.path(
-        input_folder,
-        paste0("Daily_", s, "_", start_year, "_", end_year, "_", pollutant, ".rds")
-      )
-      if (!file.exists(fn)) stop("File mancante: ", fn)
-      
-      # carica, sottoseleziona, poi libera la grande matrice
-      arr   <- readRDS(fn)
-      slice <- arr[,, idx, drop = FALSE]
-      rm(arr); gc()
-      
-      # somma
-      if (is.null(total_sum)) {
-        total_sum <- slice
-      } else {
-        total_sum <- total_sum + slice
-      }
-      rm(slice); gc()
-    }
-    
-    # salva il risultato per l'anno
-    out_fn <- file.path(
-      output_folder,
-      paste0("SumAllSectors_", pollutant, "_", yr, ".rds")
-    )
-    saveRDS(total_sum, out_fn)
-    message("  -> saved: ", out_fn)
-    
-    rm(total_sum); gc()
+  for (s in sectors) {
+    fn <- file.path(input_folder,
+                    paste0("Daily_", s, "_", stack_start, "_", stack_end, "_", pollutant, ".rds"))
+    if (!file.exists(fn)) stop("Missing file: ", fn)
+    arr   <- readRDS(fn)
+    slice <- arr[,, idx_range, drop = FALSE]
+    total_sum <- if (is.null(total_sum)) slice else total_sum + slice
+    rm(arr, slice); gc()
   }
+  
+  # etichette time + dates per il sotto-intervallo
+  dates_sum <- seq.Date(as.Date(paste0(sum_start, "-01-01")),
+                        as.Date(paste0(sum_end,   "-12-31")), by = "day")
+  cf_t_sum  <- as.character(as.integer(dates_sum - as.Date("1850-01-01")))
+  rd_t_sum  <- format(dates_sum, "%Y-%m-%d")
+  
+  dimnames(total_sum) <- list(
+    lon  = dimnames(total_sum)[[1]],
+    lat  = dimnames(total_sum)[[2]],
+    time = cf_t_sum
+  )
+  attr(total_sum, "dates") <- rd_t_sum
+  
+  # salva risultato unico per l'intervallo scelto
+  out_fn <- file.path(output_folder,
+                      paste0("SumAllSectors_", pollutant, "_", sum_start, "_", sum_end, ".rds"))
+  saveRDS(total_sum, out_fn)
 }

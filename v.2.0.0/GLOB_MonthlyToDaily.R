@@ -101,7 +101,7 @@ MonthlyToDaily <- function(monthly_rds, weekly_rds, lonlat_idx_rds,
       dimnames = list(lon = lon_n, lat = lat_n, sector = secs, time = cf_t)
     )
     attr(Dyn, "dates") <- rd_t
-    
+    T
     # Compute weekdays and months for all days in year
     wd_seq   <- wday(dates, week_start = 1)  # 1 = Monday
     mon_seq  <- month(dates)

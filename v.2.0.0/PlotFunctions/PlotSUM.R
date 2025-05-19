@@ -38,9 +38,9 @@ plot_day_emissions <- function(data_matrix, day_index, title = NULL, save_path =
 }
 
 plot_day_emissions(
-  data_matrix = SumAllSectors_NOx_2020 * 1e6 * 60 * 60 * 24,
+  data_matrix = SumAllSectors_NOx_2019 * 1e6 * 60 * 60 * 24,
   day_index = 16,
-  title = "NO₂ Emissions - 16 Jan 2020"
+  title = "NO₂ Emissions - 16 Jan 2019"
 )
 
 plot_day_emissions(
