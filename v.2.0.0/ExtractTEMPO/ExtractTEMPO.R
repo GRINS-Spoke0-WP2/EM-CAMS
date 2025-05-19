@@ -2,8 +2,8 @@
 # This file merges the functionalities from ProfilesExtraction.R and ProfilesCreation.R
 # into a single script for simpler maintenance and usage.
 
-source("../Utils.R")
-source("../Config.R")
+source("Utils.R")
+source("Config.R")
 
 ########################################################
 # Section 1 - NetCDF Profiles Extraction
@@ -143,18 +143,18 @@ process_profile <- function(nc_file_path_daily_weekly, nc_file_path_monthly, pro
   
   list_of_dfs <- vector("list", num_periods)
   
+  #Using for cycle instead of 1:num_periods for memory allocation
   for (period_index in 1:num_periods) {
     start_idx <- c(min(lon_idx), min(lat_idx), period_index)
     count_idx <- c(length(lon_idx), length(lat_idx), 1)
     
     profile_data <- ncvar_get(nc, profile_info[[profile_name]]$var_name, start = start_idx, count = count_idx)
     
-    df <- expand.grid(x = lon[lon_idx], y = lat[lon_idx])
+    df <- expand.grid(x = lon[lon_idx], y = lat[lat_idx])
     df$value <- as.vector(profile_data)
     
     list_of_dfs[[period_index]] <- df
   }
-  
   nc_close(nc)
   
   if (profile_info[[profile_name]]$temporal_dim == "daily") {

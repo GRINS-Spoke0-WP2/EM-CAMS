@@ -1,5 +1,15 @@
 # Global Configurations and Package Management
 
+# Italy bounding box
+boundary <- c(6, 19, 35, 48)
+
+# Required libraries
+required_packages <- c("ncdf4", "abind", "reshape2")
+
+#sector names
+
+
+
 # Elenco delle librerie richieste
 required_packages <- c("ncdf4", "abind", "reshape2")
 
@@ -18,5 +28,4 @@ check_and_install_packages <- function(pkgs) {
 # Esegui il controllo delle librerie
 check_and_install_packages(required_packages)
 
-# Altre configurazioni globali
-boundary <- c(6, 19, 35, 48)  # Italy
+

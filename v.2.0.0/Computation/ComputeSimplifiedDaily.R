@@ -51,11 +51,6 @@ DailyDataFromSimplified <- function(yearlyData, start_year, end_year, pollutant_
     # Iterate over sectors
     for (sector in sector_names_yearly) {
       
-      # Skip sector F
-      if (sector == "F") {
-        next  # Skip sector "F"
-      }
-      
       # Initialize matrix DailyData
       DailyData <- array(0, dim = c(dimYearlyData[1], dimYearlyData[2], days))  # Reset DailyData for each sector
       

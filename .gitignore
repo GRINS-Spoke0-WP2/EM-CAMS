@@ -1,7 +1,21 @@
-
+# File di dati di R
+*.RData
 *.rda
-.Rproj.user
-
 *.rds
+
+# Cronologia e metadata di RStudio
+.Rhistory
+.Ruserdata
+.Rproj.user/
+
+# File netCDF
 *.nc
+
+# File tabulari (se vuoi ignorare tutti i CSV di dati grezzi)
 *.csv
+
+# Cartella “Data” dentro la release v.2.0.0
+/v.2.0.0/Data/
+
+# (Se vuoi ignorare qualunque altra cartella “Data” in sottocartelle)
+/**/Data/

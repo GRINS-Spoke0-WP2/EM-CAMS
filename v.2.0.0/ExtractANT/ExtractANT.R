@@ -4,8 +4,8 @@ library(reshape2)
 library(abind)
 library(lubridate)  # Per estrarre l'anno dalle date
 
-source("../Utils.R")
-source("../Config.R")
+source("Utils.R")
+source("Config.R")
 
 # Funzione per estrarre i dati da tutti i settori in un file NetCDF
 extractAllSectors <- function(nc_file_path) {

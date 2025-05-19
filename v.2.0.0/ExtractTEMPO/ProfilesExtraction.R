@@ -1,5 +1,5 @@
-source("../Utils.R")
-source("../Config.R")
+source("Utils.R")
+source("Config.R")
 
 # Function to save daily profiles as matrix (3D) per year
 save_daily_profiles_as_matrix <- function(list_of_dfs, start_year, output_dir,profile_name) {

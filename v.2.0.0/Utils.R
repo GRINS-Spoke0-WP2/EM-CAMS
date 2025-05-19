@@ -20,9 +20,10 @@ save_data <- function(data, file_path) {
 }
 
 # Function to get longitude, latitude, and their indices within specified boundaries
-get_lon_lat_indices <- function(nc_file_path, boundary) {
+# Function to extract longitude, latitude, and their indices within specified boundaries
+get_lon_lat_indices <- function(nc_file_path, boundary, output_name) {
   # Open the NetCDF file
-  nc <- open_nc_file(nc_file_path)
+  nc <- nc_open(nc_file_path)
   
   # Get longitude and latitude variables
   lon <- ncvar_get(nc, "lon")
@@ -32,15 +33,21 @@ get_lon_lat_indices <- function(nc_file_path, boundary) {
   lon_idx <- which(lon >= boundary[1] & lon <= boundary[2])
   lat_idx <- which(lat >= boundary[3] & lat <= boundary[4])
   
-  # Save lon, lat, lon_idx, lat_idx in an RDS file
-  saveRDS(list(lon = lon, lat = lat, lon_idx = lon_idx, lat_idx = lat_idx), 
-          "Demo/Data/Processed/ANT_data/lon_lat_idx.rds")
+  # Prepare the output list
+  result <- list(
+    lon      = lon,
+    lat      = lat,
+    lon_idx  = lon_idx,
+    lat_idx  = lat_idx
+  )
+  
+  # Save to RDS file
+  output_path <- file.path("Data", "Processed", paste0(output_name, ".rds"))
+  saveRDS(result, output_path)
+  message("Saved to: ", output_path)
   
   # Close the NetCDF file
   nc_close(nc)
-  
-  # Return the extracted data
-  return(list(lon = lon, lat = lat, lon_idx = lon_idx, lat_idx = lat_idx))
 }
 
 sector_names <- list(
@@ -57,4 +64,22 @@ sector_names <- list(
   K = "K_AgriLivestock",
   L = "L_AgriOther",
   S = "SumAllSectors"
+)
+
+# Define the mapping for CAMS-GLOB-ANT sectors.
+sector_names_GLOB <- list(
+  agl = "agl",
+  ags = "ags",
+  awb = "awb",
+  com = "com",
+  ene = "ene",
+  fef = "fef",
+  ind = "ind",
+  ref = "ref",
+  res = "res",
+  shp = "shp",
+  sum = "sum",
+  swd = "swd",
+  tnr = "tnr",
+  tro = "tro"
 )

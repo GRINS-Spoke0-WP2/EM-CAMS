@@ -7,7 +7,7 @@
 
 calculate_from_FD <- function(PollutantName, yearly_data_file, temporal_profile_folder, output_folder, sector) {
   # Definisci la cartella dove si trovano i dati annuali
-  yearly_data_folder <- "Demo/Data/Processed/ANT_data"
+  yearly_data_folder <- "Data/Processed/ANT_data"
   
   # Costruisci il nome del file yearly_data automaticamente in base al pollutant (case-sensitive)
   yearly_data_file <- file.path(yearly_data_folder, paste0("REG_ANT_yearly_data_", tolower(PollutantName), ".rds"))
