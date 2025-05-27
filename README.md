@@ -98,7 +98,9 @@
 4. Daily disaggregation using TEMPO profiles and TEMPO simplified profiles
 5. Export daily maps in rds files
 
+## 6. Pollutant Availability
 
+Although the CAMS inventories used in EM-CAMS cover a wide range of species—including NOₓ, SO₂, NMVOC, NH₃, CO, PM₁₀, PM₂.₅, EM-CAMS currently provides only NOₓ data for both CAMS-REG and CAMS-GLOB sources.
 
 **Contact & Collaboration**: For questions or contributions, open an Issue or contact the maintainer.
 
