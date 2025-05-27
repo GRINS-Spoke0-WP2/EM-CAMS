@@ -48,11 +48,6 @@ map_GLOB_to_GNFR <- function(data_5d,
   for (i in seq_along(newS)) {
     gnfr <- newS[i]
     
-    # Map original GLOB sectors to current GNFR sector
-    mapped <- vapply(orig_sect,
-                     function(x) sector_map_GLOB_to_GNFR[[tolower(x)]] %||% "0",
-                     FUN.VALUE = "")
-    
     # Get indices of GLOB sectors that map to this GNFR sector
     idx <- which(mapped == gnfr)
     if (length(idx) == 0) next  # skip if no matching sector
