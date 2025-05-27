@@ -2,7 +2,7 @@
 
 **EM-CAMS** (Copernicus Emission Daily Dataset) is a high-resolution daily inventory of anthropogenic emissions over Italy, built using Copernicus Atmosphere Monitoring Service (CAMS) data.
 
-> 🚨 **Note:** This README provides only a **brief overview** of the work performed. For a **detailed methodology** behind the 2000–2022 dataset, please refer to the [IEDD repository](https://github.com/your-org/IEDD) (link placeholder). Detailed explanations for the CAMS-GLOB-ANT extension will be added soon. This README covers:
+> 🚨 **Note:** This README provides only a **brief overview** of the work performed. For a **detailed methodology** behind the 2000–2022 dataset, please refer to the [IEDD repository](https://github.com/aminb00/IEDD). Detailed explanations for the CAMS-GLOB-ANT extension will be added soon. This README covers:
 
 1. Spatial and temporal coverage
 2. Data sources and structure of CAMS-REG-ANT and CAMS-GLOB-ANT inventories
@@ -101,30 +101,11 @@
 ```text
 1. Download CAMS-REG-ANT annual data
 2. Download CAMS-GLOB-ANT monthly data
-3. Load CAMS-REG-TEMPO V3.1 & V4.1 simplified profiles (CSV)
-4. Spatial resampling of GLOB data to 0.05°×0.1°
-5. Seasonal correction and application of \alpha_{s,m}
-6. Daily disaggregation using x_{s,m}, y_{s,d}
-7. Export daily maps (NetCDF/GeoTIFF)
-8. Validation: compare totals, spatial patterns, and trends (REG vs. GLOB)
-9. Documentation of metadata, gaps, and potential biases
-```
+3. Dowload CAMS-REG-TEMPO V3.1 & V4.1 simplified profiles (CSV)
+4. Daily disaggregation using TEMPO profiles and TEMPO simplified profiles
+5. Export daily maps in rds files
 
-## 6. Recommendations for Harmonizing 2000–2022 vs. 2023–2025
 
-1. **2022 comparison**: compute % differences of Italy totals by sector/pollutant.
-2. **Spatial analysis**: RMSE and correlation between REG and GLOB 2022 maps.
-3. **Trend check**: compare 2015–2022 trends for consistency.
-4. **Reference data**: compare with ISPRA and EDGAR to identify the more reliable source.
-5. **Scaling definition**:
-
-   ```math
-   E_{t}^{\mathrm{scaled}} = E_{t}^{\mathrm{GLOB}} \times \frac{E_{2022}^{\mathrm{REG}}}{E_{2022}^{\mathrm{GLOB}}}
-   ```
-6. **Application**: decide on global vs. sectoral partial scaling.
-7. **Documentation**: clearly record any corrections in metadata.
-
-```
 
 **Contact & Collaboration**: For questions or contributions, open an Issue or contact the maintainer.
 
