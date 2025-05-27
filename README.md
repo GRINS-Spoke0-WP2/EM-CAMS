@@ -68,7 +68,7 @@
 2. **Daily disaggregation**:
 
    * Use weekly profiles \$y\_{s,d}\$ to split each month into days.
-   * Daily map = corrected monthly map \$\times \frac{y\_{s,d}}{\sum\_{t \in m} y\_{s,d(t)}}\$.
+
 
 
 ## 4. Mapping of GLOB Sectors to GNFR
