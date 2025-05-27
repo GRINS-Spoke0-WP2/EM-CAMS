@@ -12,9 +12,6 @@ source("Utils.R")
 ###############################################################################
 start_time_phase1 <- Sys.time()
 
-# Get lon/lat indices for REG (this is your existing routine)
-get_lon_lat_indices("Data/Raw/CAMS-REG-ANT/CAMS-REG-ANT_EUR_0.05x0.1_anthro_nox_v8.0_yearly.nc", boundary)
-
 # 2. SETUP STRUCTURE
 source("setup_structure.R")
 
