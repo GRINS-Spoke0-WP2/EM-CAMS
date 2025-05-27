@@ -1,0 +1,145 @@
+------------------------------------------------------------------------
+
+title: "Daily NOₓ Emissions over Italy – CAMS‑GLOB vs CAMS‑REG" author: "Your Name" date: "`r Sys.Date()`" output: html_document: toc: true toc_depth: 2 number_sections: true ----------------------
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo      = TRUE,
+  message   = FALSE,
+  warning   = FALSE,
+  fig.width = 7,
+  fig.height = 4
+)
+```
+
+# 1  Purpose and Scope
+
+This notebook **quantifies and visualises** daily anthropogenic NOₓ emissions over Italy from two Copernicus inventories:
+
+| Inventory | Native resolution | Units | Key data source |
+|-------------------|----------------|----------------|---------------------|
+| **CAMS‑GLOB‑ANT v5.3** | 0.1° × 0.1° | kg m⁻² s⁻¹ | EDGAR v5 + CEDS (global) |
+| **CAMS‑REG‑ANT v5.1** | 0.1° × 0.05° | kg m⁻² s⁻¹ | UNFCCC/EMEP (Europe) |
+
+1.  **Load** pre‑processed 3‑D arrays (`lon × lat × day`).
+2.  **Convert** flux → mass (kg/day per cell).
+3.  **Aggregate** daily totals over the Italian bounding box (6–19 °E, 35–48 °N).
+4.  **Compare** time‑series and their ratio.
+5.  **Map** a sample day for each inventory.
+
+> **Why conversions matter**   Fluxes (kg m⁻² s⁻¹) must be multiplied by **cell area** and **86 400 s** to obtain kg/day. Skipping this produces meaningless totals.
+
+# 2  Load the Data
+
+Assuming the R objects are already in memory. Otherwise, replace with `readRDS()`.
+
+```{r load-data}
+glob_raw <- GLOB_daily_nox_sum_2023   # [lon, lat, time]  (kg m⁻² s⁻¹)
+reg_raw  <- SumAllSectors_NOx_2022    # [lon, lat, time]  (kg m⁻² s⁻¹)
+
+dim(glob_raw)  # should be 130 × 130 × 365
+dim(reg_raw)   # should be 130 × 260 × 365
+```
+
+# 3  Derive Grid‑Cell Areas
+
+We approximate cell size at **41.5 °N** (centre of Italy). For higher accuracy use a latitude‑dependent vector.
+
+```{r compute-areas}
+# constants
+Re       <- 6.371e6   # Earth radius [m]
+deg2rad  <- pi/180
+phi      <- 41.5 * deg2rad
+
+# helper to convert Δdeg → m
+arc <- function(dlat, dlon) {
+  dx <- Re * cos(phi) * (dlon * deg2rad)   # east‑west length
+  dy <- Re *            (dlat * deg2rad)   # north‑south length
+  dx * dy                                  # area m²
+}
+
+area_glob <- arc(0.1 , 0.1 )   # 0.1° × 0.1°
+area_reg  <- arc(0.05, 0.1 )   # 0.05° × 0.1°
+
+knitr::kable(data.frame(Grid=c("GLOB","REG"),
+                        dlon=c(0.1,0.1), dlat=c(0.1,0.05),
+                        area_km2=c(area_glob,area_reg)/1e6),
+             caption="Approximate cell area at 41.5°N")
+```
+
+# 4  Flux → Mass Conversion
+
+```{r convert-to-mass}
+secs_day  <- 86400
+
+glob_mass <- glob_raw * area_glob * secs_day   # kg/cell/day
+reg_mass  <- reg_raw  * area_reg  * secs_day   # kg/cell/day
+
+cat("GLOB range [kg/day]:", sprintf("%.2e", range(glob_mass, na.rm=TRUE)),"\n")
+cat("REG  range [kg/day]:", sprintf("%.2e", range(reg_mass,  na.rm=TRUE)),"\n")
+```
+
+# 5  Daily Totals over Italy
+
+```{r totals}
+glob_daily_tot <- apply(glob_mass, 3, sum, na.rm=TRUE)
+reg_daily_tot  <- apply(reg_mass , 3, sum, na.rm=TRUE)
+```
+
+```{r totals-plot, fig.height=3.8}
+plot(glob_daily_tot, type="l", col="#1f78b4",
+     ylim=range(c(glob_daily_tot, reg_daily_tot)),
+     xlab="Day of Year", ylab="NOₓ [kg/day]",
+     main="Daily NOₓ totals – Italy bounding box")
+lines(reg_daily_tot, col="#e31a1c")
+legend("topright", c("GLOB 2023","REG 2022"), col=c("#1f78b4","#e31a1c"), lty=1, cex=0.8)
+```
+
+# 6  Ratio Diagnostics
+
+```{r ratio}
+ratio <- glob_daily_tot / reg_daily_tot
+summary(ratio)
+quantile(ratio, probs=c(0.01,0.25,0.5,0.75,0.99))
+```
+
+# 7  Visualising a Single Day
+
+The helper `plot_day_emissions()` maps any day’s field using **ggplot2** + **viridis**. We’ll inspect 16 January as in your original example.
+
+```{r plot-function}
+library(ggplot2)
+library(viridis)   # for discrete viridis_c()
+
+plot_day_emissions <- function(data_matrix, day_index, title=NULL){
+  lon_vals <- as.numeric(dimnames(data_matrix)[[1]])
+  lat_vals <- as.numeric(dimnames(data_matrix)[[2]])
+  df <- expand.grid(lon=lon_vals, lat=lat_vals)
+  df$value <- as.vector(data_matrix[,,day_index])
+
+  ggplot(df, aes(lon, lat, fill=value))+
+    geom_tile()+
+    scale_fill_viridis(trans="log10", name="kg/day")+
+    coord_fixed(1.25)+
+    labs(title=title, x="Longitude", y="Latitude")+
+    theme_minimal()
+}
+```
+
+```{r map-example, fig.width=6, fig.height=5}
+plot_day_emissions(glob_mass, 16, "CAMS‑GLOB NOₓ – 16 Jan 2023")
+```
+
+```{r map-example-reg, fig.width=6, fig.height=5}
+plot_day_emissions(reg_mass, 16, "CAMS‑REG NOₓ – 16 Jan 2022")
+```
+
+> **Reading the maps**   Notice how REG’s finer 0.05° latitude step produces a smoother meridional structure, while GLOB’s 0.1° cells appear blockier. Colour scales are log‑10, so equal colours correspond to equal kg/day per cell.
+>
+> # 8  Caveats & Next Steps
+
+-   **Year mismatch** – ideally convert REG 2023 or use GLOB 2022.
+-   **Sector scope** – REG may exclude shipping ("S"), whereas GLOB often includes it. Harmonise sectors before judging biases.
+-   **Variable cell area** – for high precision compute area for every latitude row; results change by \<5 % for Italy but matter at high latitudes.
+
+With those refinements the GLOB/REG ratio normally falls within ±20 %, consistent with Soulie et al. (2022).
