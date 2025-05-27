@@ -59,23 +59,17 @@
 2. **Daily disaggregation**:
    $E_{i,s}(t) = E_{i,s,j} \times x_{s,m(t)} \times y_{s,d(t)},$
    where \$x\_{s,m}\$ = monthly profile, \$y\_{s,d}\$ = weekly profile.
-3. **Output**: daily emissions on a 0.05° × 0.1° grid for 16 GNFR sectors (+ sub-sectors).
+3. **Output**: daily emissions on a 0.05° × 0.1° grid for 12 GNFR sectors + sum of sectors.
 
 ### 3.2 Period 2023–2025 (extended EM-CAMS)
 
 1. **Monthly data** from CAMS-GLOB-ANT (0.1° × 0.1°).
-2. **Spatial resampling** to 0.05° × 0.1°.
-3. **Seasonal alignment**:
 
-   * Compute annual total \$T\_s\$ as the sum of the 12 global monthly values \$E^{\mathrm{glob}}\_{s,m}\$.
-   * Apply CAMS-REG-TEMPO monthly profiles: \$E^{\mathrm{corr}}*{s,m} = T\_s \times x*{s,m}\$.
-   * Compute correction factors \$\alpha\_{s,m} = E^{\mathrm{corr}}*{s,m} / E^{\mathrm{glob}}*{s,m}\$.
-   * Apply \$\alpha\_{s,m}\$ pixel-wise to the global monthly maps.
-4. **Daily disaggregation**:
+2. **Daily disaggregation**:
 
    * Use weekly profiles \$y\_{s,d}\$ to split each month into days.
    * Daily map = corrected monthly map \$\times \frac{y\_{s,d}}{\sum\_{t \in m} y\_{s,d(t)}}\$.
-5. **Missing sectors**: F1–F4, I remain unpopulated (future estimates possible).
+
 
 ## 4. Mapping of GLOB Sectors to GNFR
 
@@ -94,7 +88,6 @@
 | Agriculture - Livestock | K (Agriculture-Livestock) | Livestock farming emissions                  |
 | Agriculture - Other     | L (Agriculture-Other)     | Fertilizers and agricultural residue burning |
 
-> **Note**: Sectors I and sub-sectors F1–F4 are not separately provided by CAMS-GLOB-ANT and remain zero in EM-CAMS.
 
 ## 5. Data Processing Workflow
 
