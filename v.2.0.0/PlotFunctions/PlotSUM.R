@@ -7,13 +7,13 @@ plot_day_emissions <- function(data_matrix, day_index, title = NULL, save_path =
   daily_data <- data_matrix[,,day_index]
   
   # Estrai le coordinate da dimnames
-  lon_vals <- as.numeric(dimnames(data_matrix)[[1]])
-  lat_vals <- as.numeric(dimnames(data_matrix)[[2]])
+  lon_vals <- as.numeric(dimnames(data_matrix)[[2]])
+  lat_vals <- as.numeric(dimnames(data_matrix)[[1]])
   
   # Crea il dataframe
   df <- expand.grid(
-    lon = lon_vals,
-    lat = lat_vals
+    lat = lat_vals,
+    lon = lon_vals
   )
   df$value <- as.vector(daily_data)
   
@@ -38,15 +38,15 @@ plot_day_emissions <- function(data_matrix, day_index, title = NULL, save_path =
 }
 
 plot_day_emissions(
-  data_matrix = SumAllSectors_NOx_2019 * 1e6 * 60 * 60 * 24,
+  data_matrix = EM_NOx_2022 * 1e6 * 60 * 60 * 24,
   day_index = 16,
-  title = "NO₂ Emissions - 16 Jan 2019"
+  title = "NO₂ Emissions - 16 Jan 2022"
 )
 
 plot_day_emissions(
-  data_matrix = GLOB_daily_nox_sum_2023 * 1e6 * 60 * 60 * 24,
+  data_matrix = GLOB_daily_nox_sum_2025_fixed * 1e6 * 60 * 60 * 24,
   day_index = 16,
-  title = "NO₂ Emissions - 16 Jan 2023"
+  title = "NO₂ Emissions - 16 Jan 2025"
 )
 
 
