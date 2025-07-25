@@ -1,4 +1,4 @@
-# EM-CAMS v.3.0.0 - European Daily Emission Dataset
+# EM-CAMS v.3.0.0 - Italian Daily Emission Dataset
 
 [![R](https://img.shields.io/badge/R-4.0%2B-blue.svg)](https://www.r-project.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
