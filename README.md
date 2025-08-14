@@ -1,5 +1,112 @@
-# CAMS - Emission
+# EM-CAMS: Italian Emission Daily Dataset via Copernicus
 
-Data about emission flows are crucial for air quality modelling. Therefore, we have accessed the datasets provided by the CAMS services called “CAMS_GLOB_ANT”. This data set contains gridded distributions of global anthropogenic and natural emissions. Accurate representation of natural and anthropogenic emissions of atmospheric pollutants and greenhouse gases is critical for forecasting atmospheric composition. These emissions drive changes in atmospheric composition and must be incorporated into forecast models. The Copernicus Atmosphere Monitoring Service (CAMS) compiles emission data inventories that are used in its own atmospheric composition forecast models and are also compatible with other atmospheric chemical transport models. CAMS inventories integrate existing datasets and new information, covering anthropogenic emissions from fossil fuel use in sectors like power generation, road traffic, and industry, as well as from shipping and aviation. They also include natural emissions from vegetation, soil, the ocean, and termites. To ensure consistency, CAMS emission datasets align greenhouse gases, reactive gases, aerosol particles, and their precursors. Since most inventory-based datasets are delayed by several years, CAMS extends these datasets forward in time by extrapolating trends from recent years. This approach provides timely input data for real-time forecast models, ensuring the relevance and applicability of its emission inventories. 
+**EM-CAMS** (Copernicus Emission Daily Dataset) is a high-resolution daily inventory of anthropogenic emissions over Italy, built using Copernicus Atmosphere Monitoring Service (CAMS) data.
 
-Anthropogenic emissions data cover the period 2000-2020 with a monthly temporal resolution, on a spatial grid of 0.1° x 0.1°. To convert to daily data, to not change the total of fluxes, we have used a piecewise constant function whereby the entire month has the same value indicated by the original dataset on the first of that month. From a quality check point of view, these data come from a “bottom-up” approach and they contain some extremely larger values, making these datasets difficult to be used in linear models. For visualization reasons, in Fig. 2 all values after the 99th percentile are set equal to the 99th percentile.
+> 🚨 **Note:** This README provides only a **brief overview** of the work performed. For a **detailed methodology** behind the 2000–2022 dataset, please refer to the [IEDD repository](https://github.com/aminb00/IEDD). Detailed explanations for the CAMS-GLOB-ANT extension will be added soon. This README covers:
+
+1. Spatial and temporal coverage
+2. Data sources and structure of CAMS-REG-ANT and CAMS-GLOB-ANT inventories
+3. CAMS-REG-TEMPO temporal profiles (V3.1, simplified V4.1)
+4. Dataset construction methodology
+5. Mapping of global sectors to GNFR (table)
+6. Data processing workflow
+7. Recommendations for harmonizing the periods 2000–2022 vs. 2023–2025
+
+---
+
+## 1. Spatial and Temporal Coverage
+
+* **Geographic domain**: Entire Italian territory (35°N–47°N, 6°E–19°E).
+* **Spatial resolution**:
+
+  * **2000–2022**: 0.05° × 0.1° grid (\~5.5 km × 11 km).
+  * **2023–2025**: 0.1° × 0.1° grid (\~11 km × 11 km), resampled to 0.05° × 0.1° for consistency.
+* **Temporal coverage**:
+
+  * **2000–2022**: Daily emissions via CAMS-REG-ANT + CAMS-REG-TEMPO.
+  * **2023–2025**: Monthly emissions from CAMS-GLOB-ANT disaggregated to daily using CAMS-REG-TEMPO v4.1 simplified.
+
+## 2. Data Sources
+
+### 2.1 CAMS-REG-ANT
+
+* Regional anthropogenic emission inventory (TNO/CAMS) for Europe.
+* Resolution: 0.05° × 0.1°.
+* Temporal coverage: annual totals, 2000–2022 (versions v5.1, v6.1, v7.0).
+* Pollutants: NOₓ, SO₂, NMVOC, NH₃, CO, PM₁₀, PM₂.₅, CO₂\_ff, CO₂\_bf, CH₄.
+* Sectors: 16 GNFR categories (A–L, F1–F4).
+* Units: areal fluxes (kg·m⁻²·s⁻¹).
+
+### 2.2 CAMS-GLOB-ANT
+
+* Global anthropogenic emission inventory (CAMS v5.3, EDGAR-derived).
+* Resolution: 0.1° × 0.1°, resampled for EM-CAMS.
+* Temporal coverage: monthly, 2000–2023 (extrapolated to 2025).
+* Species: 36+ pollutants (air pollutants and greenhouse gases), units kg·m⁻²·s⁻¹.
+* Sectors: 17 macro-categories aggregated from EDGAR/CEDS to align with GNFR.
+
+### 2.3 CAMS-REG-TEMPO
+
+* Temporal profiles for disaggregating annual emissions into daily.
+* **V3.1**: detailed daily, weekly, and monthly profiles per grid cell and pollutant.
+* **V4.1 simplified**: country-level monthly, weekly, and hourly profiles (CSV).
+
+## 3. Construction Methodology
+
+### 3.1 Period 2000–2022 (original IEDD)
+
+1. **Annual data** from CAMS-REG-ANT: \$E\_{i,s,j}\$ (grid cell i, sector s, year j).
+2. **Daily disaggregation**:
+   $E_{i,s}(t) = E_{i,s,j} \times x_{s,m(t)} \times y_{s,d(t)},$
+   where \$x\_{s,m}\$ = monthly profile, \$y\_{s,d}\$ = weekly profile.
+3. **Output**: daily emissions on a 0.05° × 0.1° grid for 12 GNFR sectors + sum of sectors.
+
+### 3.2 Period 2023–2025 (extended EM-CAMS)
+
+1. **Monthly data** from CAMS-GLOB-ANT (0.1° × 0.1°).
+
+2. **Daily disaggregation**:
+
+   * Use weekly profiles \$y\_{s,d}\$ to split each month into days.
+
+
+
+## 4. Mapping of GLOB Sectors to GNFR
+
+| CAMS-GLOB-ANT Category  | GNFR in EM-CAMS           | Notes                                        |
+| ----------------------- | ------------------------- | -------------------------------------------- |
+| Energy                  | A (Public Power)          | Power and heat generation                    |
+| Industry                | B (Industry)              | Manufacturing and industrial processes       |
+| Residential/Commercial  | C (Other Stationary)      | Residential and commercial heating           |
+| Fugitive Emissions      | D (Fugitives)             | Fuel extraction and distribution losses      |
+| Solvent & Products      | E (Solvents)              | Solvent use and industrial chemicals         |
+| Road Transport          | F (Road Transport)        | Aggregate of F1–F4 sub-sectors               |
+| Shipping                | G (Shipping)              | Inland and maritime navigation               |
+| Aviation                | H (Aviation)              | Landing/take-off and cruise emissions        |
+| Off-Road Machinery      | **I (OffROAD)**           | **Not available**                            |
+| Waste Management        | J (Waste)                 | Landfills, wastewater, incineration          |
+| Agriculture - Livestock | K (Agriculture-Livestock) | Livestock farming emissions                  |
+| Agriculture - Other     | L (Agriculture-Other)     | Fertilizers and agricultural residue burning |
+
+
+## 5. Data Processing Workflow
+
+```text
+1. Download CAMS-REG-ANT annual data
+2. Download CAMS-GLOB-ANT monthly data
+3. Dowload CAMS-REG-TEMPO V3.1 & V4.1 simplified profiles (CSV)
+4. Daily disaggregation using TEMPO profiles and TEMPO simplified profiles
+5. Export daily maps in rds files
+```
+
+## 6. Pollutant Availability
+
+Although the CAMS inventories used in EM-CAMS cover a wide range of species—including NOₓ, SO₂, NMVOC, NH₃, CO, PM₁₀, PM₂.₅, EM-CAMS currently provides only NOₓ data for both CAMS-REG and CAMS-GLOB sources.
+
+**Contact & Collaboration**: For questions or contributions, open an Issue or contact the maintainer.
+
+**License**: MIT. Feel free to use and adapt, citing EM-CAMS and CAMS.
+
+---
+
+```
