@@ -50,6 +50,7 @@ as.Date(as.numeric(dimnames(EM_NO2)[[3]]), origin = as.Date("1850-01-01"))
 # sto subsettando il 2024 dai dati di AMIN per metterli dentro lo script di AMELIA
 
 # converting ST
+# inserisci i tuoi dati in questa cartella
 EM_files <- list.files("v.3.0.0/data.nosync",".rds")
 
 for (i in EM_files) {
@@ -96,6 +97,9 @@ for (nv in names(EM_CAMS_v300_df)[-c(1:3)]) {
 
 saveRDS(EM_CAMS_v300_ST,file = "v.3.0.0/data.nosync/ST/EM_CAMS_v300_ST_ALL.rds")
     
+# install.packages("devtools")
+# devtools::install_github("GRINS-Spoke0-WP2/geotools")
+# library(geotools)
 
 # DA FARE 
 library(geotools)
